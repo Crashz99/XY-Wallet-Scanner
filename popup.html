@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+/* ===== BASE ===== */
+body {
+    width: 380px;
+    min-height: 560px;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at top, #0f172a, #020617 70%);
+    color: #e2e8f0;
+}
+
+/* ===== MAIN CARD ===== */
+.container {
+    margin: 12px;
+    padding: 18px;
+    border-radius: 18px;
+
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(20px);
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    box-shadow:
+        0 0 30px rgba(0,0,0,0.6),
+        inset 0 0 20px rgba(255,255,255,0.03);
+}
+
+/* ===== SCORE ===== */
+.score {
+    font-size: 34px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+/* ===== STATUS ===== */
+.status {
+    text-align: center;
+    font-size: 13px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.safe { color: #22c55e; }
+.medium { color: #facc15; }
+.danger { color: #ef4444; }
+
+/* ===== FLAGS ===== */
+ul {
+    padding-left: 18px;
+    font-size: 12px;
+    color: #f87171;
+}
+
+/* ===== METRICS ===== */
+.metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.metric {
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.metric span {
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+.metric div {
+    font-size: 14px;
+    margin-top: 3px;
+}
+
+/* ===== DROPDOWN BUTTON ===== */
+#toggleDetails {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+
+    background: rgba(255,255,255,0.05);
+    border: none;
+    border-radius: 10px;
+
+    color: #94a3b8;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#toggleDetails:hover {
+    background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+/* ===== DROPDOWN CONTENT ===== */
+#details {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+
+    margin-top: 0;
+}
+
+#details.open {
+    max-height: 400px;
+    opacity: 1;
+    margin-top: 12px;
+}
+
+/* ===== DETAIL ROW ===== */
+.row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    padding: 6px 0;
+    border-bottom: 1px solid #334155;
+}
+
+.row:last-child {
+    border-bottom: none;
+}
+
+.risk-high { color: #ef4444; }
+.risk-low { color: #22c55e; }
+
+/* ===== VERDICT ===== */
+#aiVerdict {
+    font-size: 12px;
+    margin-bottom: 10px;
+    color: #60a5fa;
+}
+
+/* ===== BUTTON ===== */
+#refreshBtn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+
+    background: linear-gradient(135deg, #22c55e, #4ade80);
+    border: none;
+    border-radius: 10px;
+
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#refreshBtn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 10px rgba(34,197,94,0.5);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- SCORE -->
+    <div id="scoreDisplay" class="score">--/100</div>
+
+    <!-- STATUS -->
+    <div id="statusDisplay" class="status">Ready to Scan</div>
+
+    <!-- FLAGS -->
+    <ul id="flagList"></ul>
+
+    <!-- METRICS -->
+    <div class="metrics">
+        <div class="metric">
+            <span>Transactions</span>
+            <div id="txCount">--</div>
+        </div>
+        <div class="metric">
+            <span>Balance</span>
+            <div id="balanceEth">--</div>
+        </div>
+        <div class="metric">
+            <span>Wallet Age</span>
+            <div id="walletAge">--</div>
+        </div>
+        <div class="metric">
+            <span>Velocity</span>
+            <div id="velocity">--</div>
+        </div>
+    </div>
+
+    <!-- DROPDOWN BUTTON -->
+    <button id="toggleDetails">▼ Advanced Analysis</button>
+
+    <!-- DROPDOWN CONTENT -->
+    <div id="details">
+
+        <div id="aiVerdict"></div>
+
+        <div class="row">
+            <span>Laundering</span>
+            <span id="launderingRisk" class="risk-low">--</span>
+        </div>
+
+        <div class="row">
+            <span>Phishing</span>
+            <span id="phishingRisk" class="risk-low">--</span>
+        </div>
+
+        <div class="row">
+            <span>Contracts</span>
+            <span id="contractRisk" class="risk-low">--</span>
+        </div>
+
+    </div>
+
+    <!-- REFRESH -->
+    <button id="refreshBtn">Scan Wallet</button>
+
+</div>
+
+<script>
+
+/* ===== DROPDOWN LOGIC ===== */
+document.getElementById("toggleDetails").onclick = () => {
+    const details = document.getElementById("details");
+    const btn = document.getElementById("toggleDetails");
+
+    const isOpen = details.classList.contains("open");
+
+    if (isOpen) {
+        details.classList.remove("open");
+        btn.textContent = "▼ Advanced Analysis";
+    } else {
+        details.classList.add("open");
+        btn.textContent = "▲ Hide Details";
+    }
+};
+
+</script>
+
+<script src="popup.js"></script>
+
+</body>
+</html>
+

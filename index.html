@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shield Backend Tester</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0e1117; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #161b22; padding: 2rem; border-radius: 12px; border: 1px solid #30363d; width: 400px; text-align: center; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: white; }
+        button { background: #238636; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        #result { margin-top: 20px; padding: 10px; border-radius: 6px; display: none; }
+        .SAFE { border: 1px solid #238636; color: #3fb950; }
+        .DANGER { border: 1px solid #da3633; color: #f85149; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🛡️ Shield Check</h2>
+        <input type="text" id="addressInput" placeholder="Paste 0x address here...">
+        <button onclick="checkAddress()">Scan Address</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function checkAddress() {
+            const addr = document.getElementById('addressInput').value;
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+            resDiv.innerHTML = 'Scanning...';
+
+            try {
+                const response = await fetch(`http://localhost:3000/check-address/${addr}`);
+                const data = await response.json();
+                
+                resDiv.className = data.status; // Sets class to SAFE or DANGER
+                resDiv.innerHTML = `
+                    <strong>STATUS: ${data.status}</strong><br>
+                    Buy Tax: ${data.buy_tax} | Sell Tax: ${data.sell_tax}
+                `;
+            } catch (err) {
+                resDiv.innerHTML = "Error connecting to server.";
+            }
+        }
+    </script>
+</body>
+</html>
